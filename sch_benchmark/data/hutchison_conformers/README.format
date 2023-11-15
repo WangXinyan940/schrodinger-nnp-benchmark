@@ -1,0 +1,9 @@
+Each data file corresponds to a set of conformers.
+Each entry is a conformer has the following key value pairs:
+    positions:  Atomic positions given in Angstrom
+    elements:  atomic symbols
+    smiles:  SMILES string representation of molecule
+    charge:  net charge of molecule
+    energies:  a dictionary of key value pairs of computed energies in Hartree
+               The energy keys are QeqNN, QeqNN-TB, QRNN, QRNN-TB, SANI, GFN2-xTB, PM7, wB97X-D/6-31G* and DLPNO-CCSD(T)/cc-pVTZ
+               The DLPNO-CCSD(T) energy labels are taken from Folmsbee & Hutchison, IJQC 121 (2020)

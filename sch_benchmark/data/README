@@ -1,0 +1,9 @@
+All labeled data used to produce tables in this report are given in these files.
+Each set of conformers are stored as a separate json file and each directory gives
+a brief explanation of the format in a README.format file
+
+The directory description is:
+    rotamer_data:  sets of rotamers developed in this work, focusing on ionic systems
+    hutchison_conformers:  A subset of the data reported in Folmsbee & Hutchison, IJQC 121 (2020), see also https://github.com/ghutchis/conformer-benchmark
+    ionic_conformers:  conformer test set constructed from ionic molecules from ZINC
+    tautobase:  Tautomer pairs extracted from the tautobase Wahl & Sander J. Chem. Inf. Model 60 (2020), see also https://github.com/WahlOya/Tautobase

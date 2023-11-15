@@ -1,0 +1,11 @@
+Each data file corresponds to a set of conformers.
+Each entry is a conformer which has been optimized at each level of theory which has the following keys
+
+    elements:  atomic symbols
+    smiles:  SMILES string representation of molecule
+    charge:  net charge of molecule
+    
+    In addition each of the following keys: QeqNN, QeqNN-TB, QRNN, QRNN-TB, SANI, GFN2-xTB, PM7, wB97X-D/6-31G*
+    has a dictionary with fields:
+        positions:  Atomic positions in Angstrom
+        energy:  The energy at that level of theory in Hartree
