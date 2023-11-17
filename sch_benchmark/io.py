@@ -4,7 +4,7 @@ import json
 import glob
 import sch_benchmark
 
-path = sch_benchmark.__path__
+path = sch_benchmark.__path__[0]
 
 
 @dataclass
@@ -85,3 +85,15 @@ def load_rotamer_task():
             )
         rotamer_data.append(rotamer_grps)
     return rotamer_data
+
+def load_tautobase_task():
+    tautomers_data = []
+    for filename in glob.glob(f"{path}/data/tautobase/*.json"):
+        with open(filename, "r") as f:
+            data = json.load(f)
+        
+        tautomer_grps = []
+        for item in data:
+            tautomer_grps.append(SinglePoint("tautobase_all", item["smiles"], np.array(item["positions"]), item["charge"], item["elements"], item["energies"]))
+        tautomers_data.append(tautomer_grps)
+    return tautomers_data
