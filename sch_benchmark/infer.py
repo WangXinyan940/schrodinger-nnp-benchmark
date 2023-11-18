@@ -171,7 +171,34 @@ def compute_ionic_conformers(calculator: Calculator, name: str = "new_method", t
     plt.savefig("ionic_conformers.png")
     return result
 
-def compute_rotamer(calculator: Calculator, test_dataset=-1):
+def analyse_rotamer(data, ecalc, calc_method, ref_method):
+    ediff = []
+    for nrot in range(len(data)):
+        rot_calc, rot_ref = [], []
+        for nframe, frame in enumerate(data[nrot]):
+            rot_calc.append(ecalc[nrot][nframe])
+            rot_ref.append(frame.energies[ref_method])
+        rot_calc = np.array(rot_calc)
+        rot_ref = np.array(rot_ref)
+        rot_calc = rot_calc - rot_calc.mean()
+        rot_ref = rot_ref - rot_ref.mean()
+        delta = rot_calc - rot_ref
+        for item in delta:
+            ediff.append(item)
+    return np.array(ediff)
+
+def compute_rotamer(calculator: Calculator, name: str = "new_method", test_dataset=-1):
+    methods = [
+        "QeqNN",
+        "QRNN",
+        "QeqNN-TB",
+        "QRNN-TB",
+        "SANI",
+        "PM7",
+        "GFN2-xTB"
+    ]
+    method_ref = "wB97X-D/6-31G*"
+
     data = load_rotamer_task(test_dataset=test_dataset)
     result = []
     for rotamer in tqdm(data):
@@ -179,12 +206,81 @@ def compute_rotamer(calculator: Calculator, test_dataset=-1):
         for conf in rotamer:
             rot_scan.append(calc_sp(conf, calculator))
         result.append(rot_scan)
+    
+    plt.figure(figsize=(15, 10), dpi=100)
+    for method in methods:
+        ecalc = []
+        for rot in data:
+            ecalc.append([conf.energies[method] for conf in rot])
+        ediff = analyse_rotamer(data, ecalc, method, method_ref)
+        mae = np.abs(ediff).mean() * HARTREE_TO_KCAL_MOL
+
+        plt.subplot(2, 4, methods.index(method) + 1)
+        plt.hist(ediff * HARTREE_TO_KCAL_MOL, bins=20)
+        plt.title(f"{method} - MAE: {mae:.4f}")
+        plt.xlabel("delta E (kcal/mol)")
+    
+    # self
+    ediff = analyse_rotamer(data, result, name, method_ref)
+    mae = np.abs(ediff).mean() * HARTREE_TO_KCAL_MOL
+
+    plt.subplot(2, 4, 8)
+    plt.hist(ediff * HARTREE_TO_KCAL_MOL, bins=20)
+    plt.title(f"{name} - MAE: {mae:.4f}")
+    plt.xlabel("delta E (kcal/mol)")
+
+    plt.tight_layout()
+    plt.savefig("rotamer.png")
+
     return result
 
-def compute_tautobase(calculator: Calculator, test_dataset=-1):
+def analysis_tautomer(data, ecalc, calc_method, ref_method):
+    ref_delta, calc_delta = [], []
+    for npair, (t1, t2) in enumerate(data):
+        ref_delta.append(t1.energies[ref_method] - t2.energies[ref_method])
+        calc_delta.append(ecalc[npair][0] - ecalc[npair][1])
+    ref_delta = np.array(ref_delta)
+    calc_delta = np.array(calc_delta)
+    diff = calc_delta - ref_delta
+    return diff
+
+def compute_tautobase(calculator: Calculator, name: str = "new_method", test_dataset=-1):
+    methods = [
+        "SANI", "QRNN", "QRNN-TB", "GFN2-xTB", "PM7"
+    ]
+    method_ref = "wB97X-D/6-31G*"
+
     data = load_tautobase_task(test_dataset=test_dataset)
     result = []
     for t1, t2 in tqdm(data):
         e1, e2 = calc_sp(t1, calculator), calc_sp(t2, calculator)
         result.append([e1, e2])
+    
+    plt.figure(figsize=(15, 10), dpi=100)
+    for nmethod, method in enumerate(methods):
+        ecalc = [[i[0].energies[method], i[1].energies[method]] for i in data]
+        diff = analysis_tautomer(data, ecalc, method, method_ref)
+        mae = np.abs(diff).mean() * HARTREE_TO_KCAL_MOL
+        plt.subplot(2, 3, nmethod + 1)
+        plt.hist(diff * HARTREE_TO_KCAL_MOL, bins=20)
+        plt.title(f"{method} - MAE: {mae:.4f}")
+        plt.xlabel("delta E (kcal/mol)")
+
+    # self
+    diff = analysis_tautomer(data, result, name, method_ref)
+    mae = np.abs(diff).mean() * HARTREE_TO_KCAL_MOL
+    plt.subplot(2, 3, 6)
+    plt.hist(diff * HARTREE_TO_KCAL_MOL, bins=20)
+    plt.title(f"{name} - MAE: {mae:.4f}")
+    plt.xlabel("delta E (kcal/mol)")
+
+    plt.tight_layout()
+    plt.savefig("tautobase.png")
+
     return result
+
+def compute_all(calculator: Calculator, name: str = "new_method", test_dataset=-1):
+    compute_hutchison(calculator, name=name, test_dataset=test_dataset)
+    compute_ionic_conformers(calculator, name=name, test_dataset=test_dataset)
+    compute_rotamer(calculator, name=name, test_dataset=test_dataset)
+    compute_tautobase(calculator, name=name, test_dataset=test_dataset)
