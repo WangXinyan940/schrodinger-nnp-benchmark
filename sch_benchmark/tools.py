@@ -2,9 +2,10 @@ from .io import SinglePoint
 from typing import Tuple, List
 from ase import Atoms
 from ase.calculators.calculator import Calculator
-from ase.optimize import LBFGS
+from ase.optimize.bfgslinesearch import BFGSLineSearch
 import numpy as np
 from ase.units import Hartree, eV, kcal, mol
+from berny import Berny, geomlib
 
 
 def sp_to_atoms(sp: SinglePoint) -> Atoms:
@@ -75,14 +76,14 @@ def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator") -> Sing
     atoms = sp_to_atoms(sp)
     atoms.calc = calculator
     # do some opt work
-    dyn = LBFGS(atoms)
+    dyn = BFGSLineSearch(atoms)
     dyn.run(fmax=0.05)
     e = atoms.get_potential_energy() * eV / Hartree
     pos = atoms.get_positions()
     return SinglePoint(
         sp.title, sp.smiles, pos, sp.charge, sp.elements, {name: e}
     )
-
+    
 
 def calc_sp(sp: SinglePoint, calculator: Calculator) -> float:
     atoms = sp_to_atoms(sp)
