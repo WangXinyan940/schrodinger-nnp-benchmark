@@ -5,7 +5,6 @@ from ase.calculators.calculator import Calculator
 from ase.optimize.bfgslinesearch import BFGSLineSearch
 import numpy as np
 from ase.units import Hartree, eV, kcal, mol
-from berny import Berny, geomlib
 
 
 def sp_to_atoms(sp: SinglePoint) -> Atoms:
@@ -77,7 +76,7 @@ def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator") -> Sing
     atoms.calc = calculator
     # do some opt work
     dyn = BFGSLineSearch(atoms)
-    dyn.run(fmax=0.05)
+    dyn.run(fmax=0.001)
     e = atoms.get_potential_energy() * eV / Hartree
     pos = atoms.get_positions()
     return SinglePoint(
