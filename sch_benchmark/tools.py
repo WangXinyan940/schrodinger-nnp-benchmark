@@ -21,6 +21,7 @@ def sp_to_atoms(sp: SinglePoint) -> Atoms:
         charges=charges,
     )
 
+
 def group_by_smiles(smiles):
     grp = {}
     ngrp = []
@@ -29,6 +30,7 @@ def group_by_smiles(smiles):
             grp[smi] = len(grp)
         ngrp.append(grp[smi])
     return ngrp
+
 
 def elem_to_str(elem):
     el_sorted = sorted(elem)
@@ -42,6 +44,7 @@ def elem_to_str(elem):
         ret += f"{key}{tmp[key]}"
     return ret
 
+
 def group_by_elements(elem: list) -> list:
     grp = {}
     ngrp = []
@@ -52,6 +55,7 @@ def group_by_elements(elem: list) -> list:
         ngrp.append(grp[el_str])
     return ngrp
 
+
 def analyse_by_group(val: np.ndarray, ref: np.ndarray, groups: List[int]):
     diff_grps = list(set(groups))
     new_val = np.zeros_like(val)
@@ -60,7 +64,7 @@ def analyse_by_group(val: np.ndarray, ref: np.ndarray, groups: List[int]):
     r2_grp, mae_grp = [], []
     for grp in diff_grps:
         idx = np.where(groups_ == grp)[0]
-        if len(idx) < 3:
+        if len(idx) < 2:
             print(f"WARNING: group size is {len(idx)}")
             continue
         val_part = val[idx] - val[idx].mean()
@@ -79,13 +83,13 @@ def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator") -> Sing
     atoms.calc = calculator
     # do some opt work
     dyn = BFGSLineSearch(atoms)
-    dyn.run(fmax=0.001)
+    dyn.run(fmax=0.005)
     e = atoms.get_potential_energy() * eV / Hartree
     pos = atoms.get_positions()
     return SinglePoint(
         sp.title, sp.smiles, pos, sp.charge, sp.elements, {name: e}
     )
-    
+
 
 def calc_sp(sp: SinglePoint, calculator: Calculator) -> float:
     atoms = sp_to_atoms(sp)
@@ -93,8 +97,10 @@ def calc_sp(sp: SinglePoint, calculator: Calculator) -> float:
     e = atoms.get_potential_energy() * eV / Hartree
     return e
 
+
 def calc_r2(y1: np.ndarray, y2: np.ndarray) -> float:
     return np.corrcoef(y1, y2)[0, 1] ** 2
+
 
 def compute_aligned_mobile(mobile, target):
 
@@ -114,6 +120,7 @@ def compute_aligned_mobile(mobile, target):
     translation = mu2 - mu1.dot(rotation)
 
     return mobile.dot(rotation) + translation
+
 
 def calc_rmsd(pos1: np.ndarray, pos2: np.ndarray) -> float:
     # align

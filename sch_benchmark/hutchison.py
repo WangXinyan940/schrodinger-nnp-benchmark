@@ -35,12 +35,13 @@ def draw_correlation_plot(val, ref, x_name, y_name, title):
     plt.title(title)
     return r2_val
 
+
 class Hutchison(BaseDataSet):
 
     def initialize(self):
         self.tasks = load_hutchison_task()
-        self.setRefMethod("DLPNO-CCSD(T)/cc-pVTZ")
-        self.setName("hutchison")
+        self.method_ref = "DLPNO-CCSD(T)/cc-pVTZ"
+        self.name = "hutchison"
 
     def inference_task(self, name, calculator, task):
         task.energies[name] = calc_sp(task, calculator)
@@ -51,7 +52,9 @@ class Hutchison(BaseDataSet):
         smiles_grp = group_by_smiles(smiles)
         eref = np.array([i.energies[self.method_ref] for i in tasks])
         eval = np.array([i.energies[method] for i in tasks])
-        maes, r2s, new_eval, new_eref = analyse_by_group(eval, eref, smiles_grp)
+        maes, r2s, new_eval, new_eref = analyse_by_group(
+            eval, eref, smiles_grp)
         title = f"{method}\nmedian MAE: {np.median(maes)*HARTREE_TO_KCAL_MOL:.4f}  median R$^2$: {np.median(r2s):.4f}"
 
-        draw_correlation_plot(new_eval, new_eref, self.method_ref, method, title)
+        draw_correlation_plot(new_eval, new_eref,
+                              self.method_ref, method, title)

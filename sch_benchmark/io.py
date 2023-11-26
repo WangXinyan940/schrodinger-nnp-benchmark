@@ -51,7 +51,8 @@ def load_ionic_conformers_task(test_dataset=-1):
                 positions = item[method]["positions"]
                 energies = {method: item[method]["energy"]}
                 conformer_grps[method] = SinglePoint(
-                    method, smiles, np.array(positions), charge, elements, energies
+                    method, smiles, np.array(
+                        positions), charge, elements, energies
                 )
             conf_data.append(conformer_grps)
     if test_dataset > 0:
@@ -81,15 +82,17 @@ def load_rotamer_task(test_dataset=-1):
         rotamer_data = rotamer_data[:test_dataset]
     return rotamer_data
 
+
 def load_tautobase_task(test_dataset=-1):
     tautomers_data = []
     for filename in glob.glob(f"{path}/data/tautobase/*.json"):
         with open(filename, "r") as f:
             data = json.load(f)
-        
+
         tautomer_grps = []
         for item in data:
-            tautomer_grps.append(SinglePoint("tautobase_all", item["smiles"], np.array(item["positions"]), item["charge"], item["elements"], item["energies"]))
+            tautomer_grps.append(SinglePoint("tautobase_all", item["smiles"], np.array(
+                item["positions"]), item["charge"], item["elements"], item["energies"]))
         tautomers_data.append(tautomer_grps)
     if test_dataset > 0:
         tautomers_data = tautomers_data[:test_dataset]

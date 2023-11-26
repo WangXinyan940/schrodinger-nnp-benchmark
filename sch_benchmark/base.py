@@ -5,6 +5,7 @@ import glob
 import sch_benchmark
 from typing import Callable, List
 import matplotlib.pyplot as plt
+from tqdm import tqdm, trange
 
 path = sch_benchmark.__path__[0]
 
@@ -27,20 +28,10 @@ class BaseDataSet:
         self.method_ref = "wB97X-D/6-31G*"
         self.initialize()
 
-    def setRefMethod(self, method):
-        self.method_ref = method
-
-    def getRefMethod(self):
-        return self.method_ref
-
-    def setName(self, name):
-        self.name = name
-
-    def getName(self):
-        return self.name
-
     def inference(self, name, calculator):
-        for n, i in enumerate(self.tasks):
+        len_tasks = len(self.tasks)
+        for n in trange(len_tasks):
+            i = self.tasks[n]
             self.tasks[n] = self.inference_task(name, calculator, i)
 
     def analyse(self, methods, figure: str = "{name}.png", filter: Callable = None):
