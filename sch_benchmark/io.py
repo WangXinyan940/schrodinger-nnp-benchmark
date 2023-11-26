@@ -2,19 +2,10 @@ import numpy as np
 from dataclasses import dataclass
 import json
 import glob
+from .base import SinglePoint
 import sch_benchmark
 
 path = sch_benchmark.__path__[0]
-
-
-@dataclass
-class SinglePoint:
-    title: str
-    smiles: str
-    positions: np.ndarray
-    charge: float
-    elements: list
-    energies: dict
 
 
 def load_hutchison_task(test_dataset=-1):

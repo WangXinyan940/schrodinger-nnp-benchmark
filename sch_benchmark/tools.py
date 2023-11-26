@@ -6,6 +6,9 @@ from ase.optimize.bfgslinesearch import BFGSLineSearch
 import numpy as np
 from ase.units import Hartree, eV, kcal, mol
 
+EV_TO_KCAL_MOL = eV / (kcal / mol)
+HARTREE_TO_KCAL_MOL = Hartree / (kcal / mol)
+
 
 def sp_to_atoms(sp: SinglePoint) -> Atoms:
     charges = np.zeros(len(sp.elements))
