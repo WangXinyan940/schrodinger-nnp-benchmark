@@ -1,10 +1,21 @@
 from .io import SinglePoint
+from .base import BaseDataSet
 from typing import Tuple, List
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.optimize.bfgslinesearch import BFGSLineSearch
 import numpy as np
 from ase.units import Hartree, eV, kcal, mol
+from rdkit import Chem
+import tempfile
+from pathlib import Path
+try:
+    import geometric
+    import geometric.molecule
+    from geometric.internal import Dihedral, PrimitiveInternalCoordinates
+except ImportError as e:
+    import warnings
+    warnings.warn(f"GEOMETRIC is not installed, use ASE instead. The optimization accuracy may be affected and the accuracy would be overestimated.")
 
 EV_TO_KCAL_MOL = eV / (kcal / mol)
 HARTREE_TO_KCAL_MOL = Hartree / (kcal / mol)
@@ -78,14 +89,42 @@ def analyse_by_group(val: np.ndarray, ref: np.ndarray, groups: List[int]):
     return np.array(mae_part), np.array(r2_part), new_val, new_ref
 
 
-def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator") -> SinglePoint:
-    atoms = sp_to_atoms(sp)
-    atoms.calc = calculator
-    # do some opt work
-    dyn = BFGSLineSearch(atoms)
-    dyn.run(fmax=0.005)
-    e = atoms.get_potential_energy() * eV / Hartree
-    pos = atoms.get_positions()
+def sp2mol(sp: SinglePoint):
+    molecule = geometric.molecule.Molecule()
+    molecule.elem = sp.elements
+    molecule.xyzs = sp.positions.reshape((1, -1, 3))  # In Angstrom
+    return molecule
+
+
+def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator", opt_method = BaseDataSet.OptMethod.ASE) -> SinglePoint:
+    if opt_method == BaseDataSet.OptMethod.GEOMETRY:
+        mol = sp2mol(sp)
+        engine = geometric.ase_engine.EngineASE(mol, calculator)
+        initial_charges = np.zeros(len(engine.ase_atoms))
+        initial_charges[0] = sp.charge
+        engine.ase_atoms.set_initial_charges(initial_charges)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmpdir = Path(tmpdirname)
+            prefix = tmpdir / "opt"
+            m = geometric.optimize.run_optimizer(
+                customengine=engine,
+                check=1,
+                prefix=str(prefix.absolute()),
+                convergence_set="GAU_LOOSE",
+                hessian="never",
+                maxiter=128
+            )
+            e = m.qm_energies[-1] * eV / Hartree
+            pos = m.xyzs[-1]
+
+    elif opt_method == BaseDataSet.OptMethod.ASE:
+        atoms = sp_to_atoms(sp)
+        atoms.calc = calculator
+        # do some opt work
+        dyn = BFGSLineSearch(atoms)
+        dyn.run(fmax=0.001)
+        e = atoms.get_potential_energy() * eV / Hartree
+        pos = atoms.get_positions()
     return SinglePoint(
         sp.title, sp.smiles, pos, sp.charge, sp.elements, {name: e}
     )

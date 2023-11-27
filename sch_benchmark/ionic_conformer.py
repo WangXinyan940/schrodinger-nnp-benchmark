@@ -1,6 +1,15 @@
 from .base import SinglePoint, BaseDataSet
 from .io import load_ionic_conformers_task
-from .tools import calc_sp, calc_opt, calc_rmsd, calc_r2, analyse_by_group, group_by_smiles, HARTREE_TO_KCAL_MOL, EV_TO_KCAL_MOL
+from .tools import (
+    calc_sp,
+    calc_opt,
+    calc_rmsd,
+    calc_r2,
+    analyse_by_group,
+    group_by_smiles,
+    HARTREE_TO_KCAL_MOL,
+    EV_TO_KCAL_MOL,
+)
 from typing import List, Dict
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,14 +44,15 @@ def _anal_ionic_conf(sp_cal, sp_ref, cal_method, ref_method, group):
 
 
 class IonicConformer(BaseDataSet):
-
     def initialize(self):
         self.tasks = load_ionic_conformers_task()
         self.method_ref = "wB97X-D/6-31G*"
         self.name = "ionic_conformer"
 
     def inference_task(self, task, name, calculator):
-        task[name] = calc_opt(task[self.method_ref], calculator, name)
+        task[name] = calc_opt(
+            task[self.method_ref], calculator, name, opt_method=self.opt_method
+        )
         return task
 
     def analyse_method(self, method: str, tasks: List):

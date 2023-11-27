@@ -9,9 +9,9 @@ from tqdm import tqdm, trange
 import multiprocessing
 from multiprocessing import Pool
 from functools import partial
+from enum import Enum
 
 path = sch_benchmark.__path__[0]
-
 
 @dataclass
 class SinglePoint:
@@ -25,10 +25,15 @@ class SinglePoint:
 
 class BaseDataSet:
 
+    class OptMethod(Enum):
+        ASE = 1
+        GEOMETRY = 2
+
     def __init__(self):
         self.name = "Base"
         self.tasks = []
         self.method_ref = "wB97X-D/6-31G*"
+        self.opt_method = self.OptMethod.ASE
         self.initialize()
 
     def inference(self, name, calculator, parallel: bool = False):
