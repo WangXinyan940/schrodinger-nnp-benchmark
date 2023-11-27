@@ -36,15 +36,17 @@ class BaseDataSet:
         self.opt_method = self.OptMethod.ASE
         self.initialize()
 
-    def inference(self, name, calculator, parallel: bool = False):
+    def inference(self, name, calculator, parallel: bool = False, nthreads: int = -1):
         len_tasks = len(self.tasks)
         if not parallel:
             for n in trange(len_tasks):
                 i = self.tasks[n]
                 self.tasks[n] = self.inference_task(i, name, calculator)
         else:
-            n_proc = multiprocessing.cpu_count()
-            with Pool(processes = int(n_proc / 2)) as pool:
+            if nthreads <= 0:
+                n_proc = multiprocessing.cpu_count()
+                nthreads = int(n_proc / 2)
+            with Pool(processes = nthreads) as pool:
                 results = list(tqdm(pool.imap(partial(self.inference_task, name = name, calculator = calculator), self.tasks), total=len_tasks))
             self.tasks = results
 
