@@ -43,7 +43,7 @@ class Hutchison(BaseDataSet):
         self.method_ref = "DLPNO-CCSD(T)/cc-pVTZ"
         self.name = "hutchison"
 
-    def inference_task(self, name, calculator, task):
+    def inference_task(self, task, name, calculator):
         task.energies[name] = calc_sp(task, calculator)
         return task
 

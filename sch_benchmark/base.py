@@ -6,6 +6,9 @@ import sch_benchmark
 from typing import Callable, List
 import matplotlib.pyplot as plt
 from tqdm import tqdm, trange
+import multiprocessing
+from multiprocessing import Pool
+from functools import partial
 
 path = sch_benchmark.__path__[0]
 
@@ -28,11 +31,18 @@ class BaseDataSet:
         self.method_ref = "wB97X-D/6-31G*"
         self.initialize()
 
-    def inference(self, name, calculator):
+    def inference(self, name, calculator, parallel: bool = False):
         len_tasks = len(self.tasks)
-        for n in trange(len_tasks):
-            i = self.tasks[n]
-            self.tasks[n] = self.inference_task(name, calculator, i)
+        if not parallel:
+            for n in trange(len_tasks):
+                i = self.tasks[n]
+                self.tasks[n] = self.inference_task(i, name, calculator)
+        else:
+            n_proc = multiprocessing.cpu_count()
+            with Pool(processes = int(n_proc / 2)) as pool:
+                results = list(tqdm(pool.imap(partial(self.inference_task, name = name, calculator = calculator), self.tasks), total=len_tasks))
+            self.tasks = results
+
 
     def analyse(self, methods, figure: str = "{name}.png", filter: Callable = None):
         nfig = len(methods)
@@ -64,7 +74,7 @@ class BaseDataSet:
     def initialize(self):
         raise NotImplementedError("Method [initialize] is not implemented")
 
-    def inference_task(self, name, calculator, task):
+    def inference_task(self, task, name, calculator):
         raise NotImplementedError("Method [inference_task] is not implemented")
 
     def analyse_method(self, method, tasks: List):

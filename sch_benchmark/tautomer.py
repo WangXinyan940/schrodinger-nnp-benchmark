@@ -24,7 +24,7 @@ class Tautomer(BaseDataSet):
         self.method_ref = "wB97X-D/6-31G*"
         self.name = "tautomer"
 
-    def inference_task(self, name, calculator, task):
+    def inference_task(self, task, name, calculator):
         new_task = []
         for item in task:
             item.energies[name] = calc_sp(item, calculator)

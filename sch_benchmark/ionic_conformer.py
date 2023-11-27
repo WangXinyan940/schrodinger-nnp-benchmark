@@ -41,7 +41,7 @@ class IonicConformer(BaseDataSet):
         self.method_ref = "wB97X-D/6-31G*"
         self.name = "ionic_conformer"
 
-    def inference_task(self, name, calculator, task):
+    def inference_task(self, task, name, calculator):
         task[name] = calc_opt(task[self.method_ref], calculator, name)
         return task
 
