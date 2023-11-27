@@ -168,3 +168,41 @@ def calc_rmsd(pos1: np.ndarray, pos2: np.ndarray) -> float:
     pos1 = compute_aligned_mobile(pos1, pos2)
     # calc rmsd
     return np.sqrt(np.power(pos1 - pos2, 2).sum(axis=1).mean())
+
+
+class XTBCmdCalculator(Calculator):
+
+    implemented_properties = ['energy', 'forces']
+
+    def __init__(self, method='GFN2-xTB', **kwargs):
+        self.method = method
+        super().__init__(**kwargs)
+
+    def calculate(self, atoms, properties=['energy', 'forces'], system_changes = None):
+        import subprocess
+        from pathlib import Path
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            xyz_path = tmp_path / 'tmp.xyz'
+            # write atoms to xyz file
+            ase.io.write(xyz_path, atoms)
+            charge = int(atoms.get_initial_charges().sum())
+            if self.method == 'GFN2-xTB':
+                gfn = "2"
+            else:
+                gfn = "1"
+            cmd = f'xtb tmp.xyz --sp --chrg {charge} --gfn {gfn} --grad'
+            subprocess.run(cmd, shell=True, cwd=tmp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # read output
+            with open(tmp_path / "tmp.engrad", "r") as f:
+                text = f.readlines()
+            lines = [line.strip() for line in text if line[0] != "#"]
+            natoms = int(lines[0])
+            energy = float(lines[1]) # energy in har
+            grads = np.array([float(i) for i in lines[2:2+3*natoms]]).reshape((natoms, 3)) # force in Hartree/Bohr
+            forces = - grads
+            e_eV = energy * 27.2114
+            forces_eV_A = forces * 51.422067
+            self.results['energy'] = e_eV
+            self.results['forces'] = forces_eV_A
