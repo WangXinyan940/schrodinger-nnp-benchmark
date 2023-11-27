@@ -1,6 +1,7 @@
 from .io import SinglePoint
 from .base import BaseDataSet
 from typing import Tuple, List
+import ase
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.optimize.bfgslinesearch import BFGSLineSearch
