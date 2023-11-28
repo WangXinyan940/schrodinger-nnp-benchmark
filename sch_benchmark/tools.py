@@ -1,10 +1,9 @@
-from .io import SinglePoint
-from .base import BaseDataSet
 from typing import Tuple, List
 import ase
 from ase import Atoms
 from ase.calculators.calculator import Calculator
 from ase.optimize.bfgslinesearch import BFGSLineSearch
+from ase.optimize.lbfgs import LBFGSLineSearch
 import numpy as np
 from ase.units import Hartree, eV, kcal, mol
 from rdkit import Chem
@@ -17,6 +16,8 @@ try:
 except ImportError as e:
     import warnings
     warnings.warn(f"GEOMETRIC is not installed, use ASE instead. The optimization accuracy may be affected and the accuracy would be overestimated.")
+from .io import SinglePoint
+from .base import BaseDataSet
 
 EV_TO_KCAL_MOL = eV / (kcal / mol)
 HARTREE_TO_KCAL_MOL = Hartree / (kcal / mol)
@@ -124,8 +125,8 @@ def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator", opt_met
         atoms = sp_to_atoms(sp)
         atoms.calc = calculator
         # do some opt work
-        dyn = BFGSLineSearch(atoms)
-        dyn.run(fmax=0.001)
+        dyn = LBFGSLineSearch(atoms)
+        dyn.run(fmax=0.0025, steps=256)
         e = atoms.get_potential_energy() * eV / Hartree
         pos = atoms.get_positions()
     return SinglePoint(
