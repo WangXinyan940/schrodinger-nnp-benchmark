@@ -97,7 +97,7 @@ class BaseDataSet:
     def inference_task(self, task, name, calculator):
         raise NotImplementedError("Method [inference_task] is not implemented")
 
-    def analyse_method(self, method, tasks: List):
+    def analyze_method(self, method, tasks: List):
         raise NotImplementedError("Method [analyse_method] is not implemented")
 
     def save(self, filename: str):
