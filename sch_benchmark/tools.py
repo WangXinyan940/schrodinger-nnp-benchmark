@@ -126,7 +126,7 @@ def calc_opt(sp: SinglePoint, calculator: Calculator, name="calculator", opt_met
         atoms.calc = calculator
         # do some opt work
         dyn = LBFGSLineSearch(atoms)
-        dyn.run(fmax=0.0025, steps=256)
+        dyn.run(fmax=0.005, steps=256)
         e = atoms.get_potential_energy() * eV / Hartree
         pos = atoms.get_positions()
     return SinglePoint(
