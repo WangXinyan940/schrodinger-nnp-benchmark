@@ -42,7 +42,7 @@ class BaseDataSet:
             i = self.tasks[n]
             self.tasks[n] = self.inference_task(i, name, calculator)
 
-    def analyse(self, methods, figure: str = "{name}.png", filter: Callable = None):
+    def analyze(self, methods, figure: str = "{name}.png", filter: Callable = None):
         nfig = len(methods)
         ncol = 2
         nrow = nfig // ncol
@@ -65,7 +65,7 @@ class BaseDataSet:
 
         for nmethod, method in enumerate(methods):
             plt.subplot(nrow, ncol, nmethod + 1)
-            self.analyse_method(method, tasks)
+            self.analyze_method(method, tasks)
         plt.tight_layout()
         plt.savefig(figure.format(name=self.name))
 

@@ -53,7 +53,7 @@ class Hutchison(BaseDataSet):
         task.energies[name] = calc_sp(task, calculator)
         return task
 
-    def analyse_method(self, method: str, tasks: List):
+    def analyze_method(self, method: str, tasks: List):
         smiles = [i.smiles for i in tasks]
         smiles_grp = group_by_smiles(smiles)
         eref = np.array([i.energies[self.method_ref] for i in tasks])

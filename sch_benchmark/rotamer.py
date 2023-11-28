@@ -37,7 +37,7 @@ class Rotamer(BaseDataSet):
             new_task.append(item)
         return new_task
 
-    def analyse_method(self, method: str, tasks: List):
+    def analyze_method(self, method: str, tasks: List):
         ecalc = [[j.energies[method] for j in i] for i in tasks]
         ediff = _anal_rotamer(tasks, ecalc, method, self.method_ref)
         mae = np.abs(ediff).mean() * HARTREE_TO_KCAL_MOL

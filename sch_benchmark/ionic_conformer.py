@@ -55,7 +55,7 @@ class IonicConformer(BaseDataSet):
         )
         return task
 
-    def analyse_method(self, method: str, tasks: List):
+    def analyze_method(self, method: str, tasks: List):
         sp_val = [i[method] for i in tasks]
         sp_ref = [i[self.method_ref] for i in tasks]
 

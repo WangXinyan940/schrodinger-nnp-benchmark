@@ -31,7 +31,7 @@ class Tautomer(BaseDataSet):
             new_task.append(item)
         return new_task
 
-    def analyse_method(self, method: str, tasks: List):
+    def analyze_method(self, method: str, tasks: List):
         ecalc = [[i[0].energies[method], i[1].energies[method]] for i in tasks]
         diff = _anal_tautomer(tasks, ecalc, method, self.method_ref)
         mae = np.abs(diff).mean() * HARTREE_TO_KCAL_MOL
