@@ -1,6 +1,13 @@
 from .base import SinglePoint, BaseDataSet
 from .io import load_hutchison_task
-from .tools import calc_sp, calc_r2, analyse_by_group, group_by_smiles, HARTREE_TO_KCAL_MOL, EV_TO_KCAL_MOL
+from .tools import (
+    calc_sp,
+    calc_r2,
+    analyse_by_group,
+    group_by_smiles,
+    HARTREE_TO_KCAL_MOL,
+    EV_TO_KCAL_MOL,
+)
 from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,7 +44,6 @@ def draw_correlation_plot(val, ref, x_name, y_name, title):
 
 
 class Hutchison(BaseDataSet):
-
     def initialize(self):
         self.tasks = load_hutchison_task()
         self.method_ref = "DLPNO-CCSD(T)/cc-pVTZ"
@@ -52,9 +58,14 @@ class Hutchison(BaseDataSet):
         smiles_grp = group_by_smiles(smiles)
         eref = np.array([i.energies[self.method_ref] for i in tasks])
         eval = np.array([i.energies[method] for i in tasks])
-        maes, r2s, new_eval, new_eref = analyse_by_group(
-            eval, eref, smiles_grp)
-        title = f"{method}\nmedian MAE: {np.median(maes)*HARTREE_TO_KCAL_MOL:.4f}  median R$^2$: {np.median(r2s):.4f}"
+        maes, r2s, new_eval, new_eref = analyse_by_group(eval, eref, smiles_grp)
+        median_ae = np.mean(np.abs(new_eval - new_eref)) * HARTREE_TO_KCAL_MOL
+        R2 = calc_r2(new_eval * HARTREE_TO_KCAL_MOL, new_eref * HARTREE_TO_KCAL_MOL)
+        title = f"{method}\nMAE: {median_ae:.4f} (kcal/mol)  R$^2$: {R2:.4f}"
 
-        draw_correlation_plot(new_eval, new_eref,
-                              self.method_ref, method, title)
+        draw_correlation_plot(new_eval, new_eref, self.method_ref, method, title)
+
+    def show(self):
+        keys = self.tasks[0].energies.keys()
+        for key in keys:
+            print(key)

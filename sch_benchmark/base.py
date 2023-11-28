@@ -13,6 +13,7 @@ from enum import Enum
 
 path = sch_benchmark.__path__[0]
 
+
 @dataclass
 class SinglePoint:
     title: str
@@ -24,7 +25,6 @@ class SinglePoint:
 
 
 class BaseDataSet:
-
     class OptMethod(Enum):
         ASE = 1
         GEOMETRY = 2
@@ -36,20 +36,11 @@ class BaseDataSet:
         self.opt_method = self.OptMethod.ASE
         self.initialize()
 
-    def inference(self, name, calculator, parallel: bool = False, nthreads: int = -1):
+    def inference(self, name, calculator):
         len_tasks = len(self.tasks)
-        if not parallel:
-            for n in trange(len_tasks):
-                i = self.tasks[n]
-                self.tasks[n] = self.inference_task(i, name, calculator)
-        else:
-            if nthreads <= 0:
-                n_proc = multiprocessing.cpu_count()
-                nthreads = int(n_proc / 2)
-            with Pool(processes = nthreads) as pool:
-                results = list(tqdm(pool.imap(partial(self.inference_task, name = name, calculator = calculator), self.tasks), total=len_tasks))
-            self.tasks = results
-
+        for n in trange(len_tasks):
+            i = self.tasks[n]
+            self.tasks[n] = self.inference_task(i, name, calculator)
 
     def analyse(self, methods, figure: str = "{name}.png", filter: Callable = None):
         nfig = len(methods)
@@ -78,6 +69,28 @@ class BaseDataSet:
         plt.tight_layout()
         plt.savefig(figure.format(name=self.name))
 
+    @classmethod
+    def split(cls, dataset, fold: int = 5) -> List:
+        from copy import deepcopy
+
+        datasets = []
+        for i in range(fold):
+            datasets.append(deepcopy(dataset))
+            datasets[i].tasks = []
+        for i in range(len(dataset.tasks)):
+            datasets[i % fold].tasks.append(dataset.tasks[i])
+        return datasets
+
+    @classmethod
+    def merge(cls, datasets: List):
+        from copy import deepcopy
+
+        dataset = deepcopy(datasets[0])
+        dataset.tasks = []
+        for i in range(len(datasets)):
+            dataset.tasks += datasets[i].tasks
+        return dataset
+
     def initialize(self):
         raise NotImplementedError("Method [initialize] is not implemented")
 
@@ -86,3 +99,16 @@ class BaseDataSet:
 
     def analyse_method(self, method, tasks: List):
         raise NotImplementedError("Method [analyse_method] is not implemented")
+
+    def save(self, filename: str):
+        import pickle
+
+        with open(filename, "wb") as f:
+            pickle.dump(self, f)
+
+    @classmethod
+    def load(cls, filename: str):
+        import pickle
+
+        with open(filename, "rb") as f:
+            return pickle.load(f)

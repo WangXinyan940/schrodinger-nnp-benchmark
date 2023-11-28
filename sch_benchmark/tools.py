@@ -74,20 +74,22 @@ def analyse_by_group(val: np.ndarray, ref: np.ndarray, groups: List[int]):
     new_ref = np.zeros_like(ref)
     groups_ = np.array(groups)
     r2_grp, mae_grp = [], []
+    new_ref, new_val = [], []
     for grp in diff_grps:
         idx = np.where(groups_ == grp)[0]
-        if len(idx) < 2:
+        if len(idx) < 3:
             print(f"WARNING: group size is {len(idx)}")
             continue
         val_part = val[idx] - val[idx].mean()
         ref_part = ref[idx] - ref[idx].mean()
-        new_ref[idx] = ref_part
-        new_val[idx] = val_part
+        for ii in range(len(val_part)):
+            new_ref.append(ref_part[ii])
+            new_val.append(val_part[ii])
         r2_part = calc_r2(val_part, ref_part)
         mae_part = np.abs(val_part - ref_part).mean()
         r2_grp.append(r2_part)
         mae_grp.append(mae_part)
-    return np.array(mae_part), np.array(r2_part), new_val, new_ref
+    return np.array(mae_grp), np.array(r2_grp), np.array(new_val), np.array(new_ref)
 
 
 def sp2mol(sp: SinglePoint):
