@@ -7,6 +7,7 @@ from .tools import (
     calc_r2,
     analyse_by_group,
     group_by_smiles,
+    group_by_elements,
     HARTREE_TO_KCAL_MOL,
     EV_TO_KCAL_MOL,
 )
@@ -60,10 +61,12 @@ class IonicConformer(BaseDataSet):
         sp_ref = [i[self.method_ref] for i in tasks]
 
         smiles = [i[self.method_ref].smiles for i in tasks]
-        smiles_grp = group_by_smiles(smiles)
+        elems = [i[self.method_ref].elements for i in tasks]
+        group = group_by_smiles(smiles)
+        # group = group_by_elements(elems)
 
         mean_rmsd, median_r2, geom_rmsd = _anal_ionic_conf(
-            sp_val, sp_ref, method, self.method_ref, smiles_grp
+            sp_val, sp_ref, method, self.method_ref, group
         )
         title = f"{method}\ngeom mean RMSD: {np.mean(geom_rmsd):.4f}\nener mean RMSD: {mean_rmsd:.4f}  ener median R$^2$: {median_r2:.4f}"
 
