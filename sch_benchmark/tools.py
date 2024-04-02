@@ -69,6 +69,52 @@ def group_by_elements(elem: list) -> list:
     return ngrp
 
 
+def center_by_groups(energies: np.ndarray, groups: List[int]):
+    grp_elems = list(set(groups))
+    groups = np.array(groups)
+    new_energies = np.zeros_like(energies)
+    for igrp in grp_elems:
+        grp_idx = groups == igrp
+        new_energies[grp_idx] = energies[grp_idx] - energies[grp_idx].mean()
+    return new_energies
+
+
+def center_by_elements(energies: np.ndarray, elements: List[List[str]]):
+    # shift energy by elements
+    # 1. count elements
+    elements_to_idx, idx_to_elements = {}, {}
+    for elems in elements:
+        for item in elems:
+            if item not in elements_to_idx:
+                elements_to_idx[item] = len(elements_to_idx)
+                idx_to_elements[elements_to_idx[item]] = item
+    
+    # 2. build element matrix
+    bias_matrix = np.zeros((energies.shape[0], len(elements_to_idx)))
+    for nelem, elems in enumerate(elements):
+        for item in elems:
+            bias_matrix[nelem, elements_to_idx[item]] += 1.0
+
+    # 3. build element bias vector
+    bias_vector = np.random.random((len(elements_to_idx), 1))
+
+    # 4. optimize bias_vector
+
+    def score(bias_vector):
+        e_bias = np.dot(bias_matrix, bias_vector)
+        loss = np.power(energies - e_bias, 2).mean()
+        return loss
+
+    from scipy.optimize import minimize
+
+    ret = minimize(score, bias_vector.ravel(), method="SLSQP")
+    bias_vector = ret.x.reshape((-1, 1))
+    e_bias = np.dot(bias_matrix, bias_vector)
+    e_shift = energies.ravel() - e_bias.ravel()
+    return e_shift
+
+
+
 def analyse_by_group(val: np.ndarray, ref: np.ndarray, groups: List[int]):
     diff_grps = list(set(groups))
     new_val = np.zeros_like(val)

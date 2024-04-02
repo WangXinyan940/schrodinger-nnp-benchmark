@@ -3,7 +3,10 @@ from .io import load_hutchison_task
 from .tools import (
     calc_sp,
     calc_r2,
+    center_by_elements,
     analyse_by_group,
+    group_by_elements,
+    center_by_groups,
     group_by_smiles,
     HARTREE_TO_KCAL_MOL,
     EV_TO_KCAL_MOL,
@@ -40,6 +43,7 @@ def draw_correlation_plot(val, ref, x_name, y_name, title):
     plt.ylabel(f"{y_name} (kcal/mol)")
     r2_val = calc_r2(val, ref)
     plt.title(title)
+    plt.tight_layout()
     return r2_val
 
 
@@ -54,16 +58,19 @@ class Hutchison(BaseDataSet):
         return task
 
     def analyze_method(self, method: str, tasks: List):
+        elements = [i.elements for i in tasks]
         smiles = [i.smiles for i in tasks]
-        smiles_grp = group_by_smiles(smiles)
+        # groups = group_by_elements(elements)
+        groups = group_by_smiles(smiles)
         eref = np.array([i.energies[self.method_ref] for i in tasks])
         eval = np.array([i.energies[method] for i in tasks])
-        maes, r2s, new_eval, new_eref = analyse_by_group(eval, eref, smiles_grp)
-        median_ae = np.mean(np.abs(new_eval - new_eref)) * HARTREE_TO_KCAL_MOL
-        R2 = calc_r2(new_eval * HARTREE_TO_KCAL_MOL, new_eref * HARTREE_TO_KCAL_MOL)
+        eref_centered = center_by_groups(eref, groups)
+        eval_centered = center_by_groups(eval, groups)
+        median_ae = np.mean(np.abs(eref_centered - eval_centered)) * HARTREE_TO_KCAL_MOL
+        R2 = calc_r2(eval_centered * HARTREE_TO_KCAL_MOL, eref_centered * HARTREE_TO_KCAL_MOL)
         title = f"{method}\nMAE: {median_ae:.4f} (kcal/mol)  R$^2$: {R2:.4f}"
 
-        draw_correlation_plot(new_eval, new_eref, self.method_ref, method, title)
+        draw_correlation_plot(eval_centered, eref_centered, self.method_ref, method, title)
 
     def show(self):
         keys = self.tasks[0].energies.keys()
