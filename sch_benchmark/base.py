@@ -42,14 +42,9 @@ class BaseDataSet:
             i = self.tasks[n]
             self.tasks[n] = self.inference_task(i, name, calculator)
 
-    def analyze(self, methods, figure: str = "{name}.png", filter: Callable = None):
-        nfig = len(methods)
-        ncol = 2
-        nrow = nfig // ncol
-        if ncol * nrow < nfig:
-            nrow += 1
-
-        plt.figure(figsize=(nrow * 4, ncol * 6), dpi=100)
+    def analyze(self, methods, filter: Callable = None):
+        ncols = len(methods)
+        nrows = max([len(methods[i]) for i in range(ncols)])
 
         if filter is not None:
             n_init = len(self.tasks)
@@ -64,10 +59,8 @@ class BaseDataSet:
             tasks = self.tasks
 
         for nmethod, method in enumerate(methods):
-            plt.subplot(nrow, ncol, nmethod + 1)
+            plt.subplot(ncols, nrows, nmethod + 1)
             self.analyze_method(method, tasks)
-        plt.tight_layout()
-        plt.savefig(figure.format(name=self.name))
 
     @classmethod
     def split(cls, dataset, fold: int = 5) -> List:
