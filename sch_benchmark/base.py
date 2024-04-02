@@ -58,9 +58,11 @@ class BaseDataSet:
         else:
             tasks = self.tasks
 
-        for nmethod, method in enumerate(methods):
-            plt.subplot(ncols, nrows, nmethod + 1)
-            self.analyze_method(method, tasks)
+        for icol, method_rows in enumerate(methods):
+            for irow, method in enumerate(method_rows):
+                nmethod = icol * nrows + irow
+                plt.subplot(ncols, nrows, nmethod + 1)
+                self.analyze_method(method, tasks)
 
     @classmethod
     def split(cls, dataset, fold: int = 5) -> List:
